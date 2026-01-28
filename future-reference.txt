@@ -185,3 +185,115 @@ If you see the tasks you added in Step 1, you have successfully connected the Da
 Are you seeing the list? 
 
 -----------------------------------------------------------------------------------------------------
+
+Excellent. Day 3 is where the app starts becoming interactive. We are moving from just reading data to creating data.
+
+Day 3 Goal: The "Create" Operation. We will build a page where users can type in a task and save it to the database.
+
+To do this, we need to handle two things:
+
+GET Request: Show the user an empty form.
+
+POST Request: Receive the data they typed, check if it's valid, and save it.
+
+Step 1: The Form (The Magic Helper)
+Django has a superpower called ModelForm. It looks at your Database Model and automatically builds an HTML form for it.
+
+Create a new file tasks/forms.py.
+
+Add this code:
+from django import forms
+from .models import Task
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'completed']
+        # We don't need 'created_at' because that's automatic
+
+Step 2: The View (The Logic)
+We need a view that handles both showing the form and saving the data. This is a standard pattern in Django.
+
+Open tasks/views.py.
+
+Update your imports (add redirect and your TaskForm) and add the create_task function:
+from django.shortcuts import render, redirect  # <--- Import redirect
+from .models import Task
+from .forms import TaskForm  # <--- Import your new Form
+
+# ... keep your existing task_list view ...
+
+def create_task(request):
+    # 1. If the user clicked "Submit" (POST request)
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()  # Saves to the Database
+            return redirect('task_list')  # Go back to the homepage
+
+    # 2. If the user just visited the page (GET request)
+    else:
+        form = TaskForm() # Create an empty form
+
+    # 3. Send the form (empty or with errors) to the template
+    return render(request, 'tasks/task_form.html', {'form': form})
+
+Step 3: The Template (The Interface)
+Now we create the HTML page for the form.
+
+Create a new file tasks/templates/tasks/task_form.html.
+
+Add this code:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Task</title>
+</head>
+<body>
+    <h1>Add a New Task</h1>
+
+    <form method="POST">
+        {% csrf_token %}  {{ form.as_p }}   <button type="submit">Save Task</button>
+    </form>
+
+    <a href="{% url 'task_list' %}">Cancel</a>
+</body>
+</html>
+
+{% csrf_token %}: This is a security feature. Django will reject the form without it.
+
+{{ form.as_p }}: This magically turns your Python form object into HTML input fields (<input>).
+
+Step 4: The URL (The Map)
+Open myproject/urls.py.
+
+Import the new view and add the path:
+from tasks.views import task_list, create_task # <--- Update imports
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', task_list, name='task_list'),
+    path('create/', create_task, name='create_task'), # <--- Add this
+]
+
+Step 5: Connect the Pages
+We have the page, but no way to get to it! Let's add a button to your homepage.
+
+Open tasks/templates/tasks/task_list.html.
+
+Add a link at the top, just under the <h1>:
+<h1>My Tasks</h1>
+<a href="{% url 'create_task' %}">+ Add New Task</a> <hr>
+
+Step 6: Verify Day 3
+Run the server (python manage.py runserver).
+
+Go to the homepage. Click "+ Add New Task".
+
+Fill out the form and click "Save Task".
+
+It should redirect you back to the list, and your new task should be there!
+
+Did it save? If so, you have conquered the "C" in CRUD! Ready for Day 4 (Updating and Deleting)?
+
+----------------------------------------------------------------------------------------------------
