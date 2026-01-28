@@ -82,3 +82,106 @@ Open your browser and go to http://127.0.0.1:8000/. You should see the little ro
 
 -------------------------------------------------------------------------------------------------------
 
+Day 2 Goal: The "Read" Operation. We want to see our tasks in the Django Admin panel, and then on a public webpage.
+
+Step 1: The Admin Panel
+Django comes with a pre-built backend so you can manage your data immediately.
+
+Create a Superuser (Admin): Run this in your terminal. It will ask for a username, email (you can skip this), and password (which won't show on screen as you type).
+python manage.py createsuperuser
+
+Register your Model: We need to tell the Admin panel that "Tasks" exist
+Open tasks/admin.py.
+
+Add this code:
+from django.contrib import admin
+from .models import Task
+
+admin.site.register(Task)
+
+Add Data:
+Run the server: python manage.py runserver
+Go to http://127.0.0.1:8000/admin/
+Login with your superuser credentials.
+Click on Tasks and add 2 or 3 tasks (e.g., "Buy Milk", "Learn Django").
+
+Step 2: The View (The Logic)
+Now let's pull that data from the database using Python code.
+
+Open tasks/views.py.
+
+We will create a "view function" that gets the data and sends it to a template.
+from django.shortcuts import render
+from .models import Task  # Import the model
+
+def task_list(request):
+    # 1. Fetch all tasks from the database
+    tasks = Task.objects.all()
+
+    # 2. Bundle them into a dictionary (context)
+    context = {'tasks': tasks}
+
+    # 3. Return the HTML page with the data inside
+    return render(request, 'tasks/task_list.html', context)
+
+Step 3: The Template (The Interface)
+Django looks for HTML files in a specific folder structure. This part is specific, so be careful with the folders.
+
+Inside your tasks folder, create a new folder named templates.
+Inside templates, create another folder named tasks.
+Inside that, create a file named task_list.html.
+Structure should look like: tasks/templates/tasks/task_list.html
+Paste this HTML into task_list.html:    
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Task Manager</title>
+</head>
+<body>
+    <h1>My Tasks</h1>
+    <hr>
+
+    {% for task in tasks %}
+        <div style="border-bottom: 1px solid #ccc; padding: 10px;">
+            <h3>{{ task.title }}</h3> 
+            <p>Status: {{ task.completed|yesno:"Done,Pending" }}</p>
+            <p>Created: {{ task.created_at }}</p>
+        </div>
+    {% empty %}
+        <p>No tasks found.</p>
+    {% endfor %}
+
+</body>
+</html>
+
+{% for %}: This is the Django Template Language. It loops through the list just like Python.
+{{ variable }}: This outputs the data.
+
+Step 4: The URL (The Map)
+Finally, we need to tell Django: "When someone visits the homepage, show them the task_list view."
+
+Open myproject/urls.py.
+
+Modify the file to look like this:
+from django.contrib import admin
+from django.urls import path
+from tasks.views import task_list  # Import your view
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', task_list, name='task_list'), # Empty string '' means the homepage
+]
+
+Step 5: Verify Day 2
+Make sure your server is running (python manage.py runserver).
+
+Go to http://127.0.0.1:8000/.
+
+You should see your list of tasks displayed on the page!
+
+If you see the tasks you added in Step 1, you have successfully connected the Database, the View, and the Template.
+
+Are you seeing the list? 
+
+-----------------------------------------------------------------------------------------------------
