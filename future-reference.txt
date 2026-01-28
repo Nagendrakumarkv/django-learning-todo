@@ -422,3 +422,175 @@ Tomorrow is the victory lap. We will add Bootstrap to make it look professional 
 Does everything work so far?
 
 ----------------------------------------------------------------------------------------------------
+
+This is the victory lap! Today we take your functional but plain application and make it look professional using Bootstrap.
+
+Day 5 Goal: Implement Template Inheritance and apply Bootstrap CSS.
+
+Currently, every HTML file you have repeats the same structure (<html>, <head>, <body>). If you wanted to add a Navbar to every page, you’d have to edit all three files.
+
+We will fix this using a Base Template.
+
+Step 1: Create the Base Template
+This file will hold the "skeleton" of your site (Navbar, Footer, CSS links). All other pages will inject their content into it.
+
+Create a new file: tasks/templates/tasks/base.html.
+
+Paste this code (includes Bootstrap 5 via CDN):
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Task Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'task_list' %}">✅ TaskManager</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>
+
+Step 2: Style the List Page
+Now we modify task_list.html to "extend" the base template. We will also replace the ugly list with a nice Bootstrap Card layout.
+
+Open tasks/templates/tasks/task_list.html.
+
+Delete everything in that file and replace it with this:
+
+{% extends 'tasks/base.html' %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>My Tasks</h1>
+        <a href="{% url 'create_task' %}" class="btn btn-success">+ Add Task</a>
+    </div>
+
+    <div class="row">
+        {% for task in tasks %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">{{ task.title }}</h5>
+                            {% if task.completed %}
+                                <span class="badge bg-success">Done</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </div>
+
+                        <p class="card-text text-muted">{{ task.description|truncatewords:10 }}</p>
+
+                        <div class="mt-3">
+                            <a href="{% url 'update_task' task.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-info">No tasks found. Create one above!</div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+Step 3: Style the Forms
+We use the same logic for the create/update page. We will use a library called django-widget-tweaks later in your career, but for now, we will wrap the form in a nice card.
+
+Open tasks/templates/tasks/task_form.html.
+
+Replace everything with:
+
+{% extends 'tasks/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Task Details</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }} </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Save Task</button>
+                        <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+Step 4: Style the Delete Page
+Open tasks/templates/tasks/task_delete.html.
+
+Replace everything with:
+
+{% extends 'tasks/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="alert alert-danger text-center">
+            <h3>Are you sure?</h3>
+            <p>You are about to delete <strong>"{{ task.title }}"</strong>.</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+Step 5: Final Verification
+Run your server: python manage.py runserver.
+
+Refresh your browser.
+
+What you should see:
+
+A blue Navbar at the top.
+
+Tasks displayed as "Cards" in a grid layout.
+
+Green/Yellow badges showing status.
+
+Clean, centered forms when you Edit or Delete.
+
+Congratulations!
+You have built a Full Stack Web Application in 5 days.
+
+Backend: Python & Django (Models, Views, URLs).
+
+Database: SQLite (managed via ORM).
+
+Frontend: HTML, Django Templates, and Bootstrap CSS.
+
+Where to go from here? You have the core skills. The next logical step is usually User Authentication (allowing users to sign up and login so they only see their tasks).
+
+Would you like a bonus "Day 6" guide on adding Login/Register functionality, or are you happy to wrap up here?
+
