@@ -26,3 +26,26 @@ def create_task(request):
 
     # 3. Send the form (empty or with errors) to the template
     return render(request, 'tasks/task_form.html', {'form': form})
+
+def update_task(request, pk):
+    task = Task.objects.get(id=pk)  # 1. Fetch the specific task by ID
+
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task) # 2. Bind data to this task
+        if form.is_valid():
+            form.save()
+            return redirect('task_list')
+    else:
+        form = TaskForm(instance=task) # 3. Pre-fill form with existing data
+
+    return render(request, 'tasks/task_form.html', {'form': form}) 
+    # Note: We reuse the same template as Create!
+
+def delete_task(request, pk):
+    task = Task.objects.get(id=pk)
+
+    if request.method == 'POST':
+        task.delete()  # <--- The actual delete command
+        return redirect('task_list')
+
+    return render(request, 'tasks/task_delete.html', {'task': task})    

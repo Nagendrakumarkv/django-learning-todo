@@ -297,3 +297,128 @@ It should redirect you back to the list, and your new task should be there!
 Did it save? If so, you have conquered the "C" in CRUD! Ready for Day 4 (Updating and Deleting)?
 
 ----------------------------------------------------------------------------------------------------
+
+You are flying through this! Day 4 is powerful because it completes the cycle.
+
+Day 4 Goal: The "Update" and "Delete" Operations. We need to give users the ability to fix mistakes (Edit) or remove completed items (Delete).
+
+To do this, we need Dynamic URLs. We can't just go to /update/. We need to go to /update/1/ or /update/5/, where the number is the specific ID (Primary Key) of the task.
+
+Step 1: The URLs (Dynamic Paths)
+We need to tell Django to expect a number in the URL.
+
+Open myproject/urls.py.
+
+Import the new views (we will create them next) and add the paths with <int:pk>.
+
+int: means "integer" (number).
+
+pk: means "primary key" (ID).
+from tasks.views import task_list, create_task, update_task, delete_task  # <--- Update imports
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', task_list, name='task_list'),
+    path('create/', create_task, name='create_task'),
+    path('update/<int:pk>/', update_task, name='update_task'), # <--- Dynamic ID
+    path('delete/<int:pk>/', delete_task, name='delete_task'), # <--- Dynamic ID
+]
+
+Step 2: The Views (Logic)
+Open tasks/views.py.
+
+Add these two functions at the bottom.
+
+The Update View: This is 90% identical to create_task. The only difference is we fetch the specific task first and pass it into the form as instance=task. This tells Django: "Pre-fill the form with this data."
+
+def update_task(request, pk):
+    task = Task.objects.get(id=pk)  # 1. Fetch the specific task by ID
+
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task) # 2. Bind data to this task
+        if form.is_valid():
+            form.save()
+            return redirect('task_list')
+    else:
+        form = TaskForm(instance=task) # 3. Pre-fill form with existing data
+
+    return render(request, 'tasks/task_form.html', {'form': form}) 
+    # Note: We reuse the same template as Create!
+
+The Delete View: We never delete immediately on a click (that's dangerous). We show a confirmation page first.
+
+def delete_task(request, pk):
+    task = Task.objects.get(id=pk)
+
+    if request.method == 'POST':
+        task.delete()  # <--- The actual delete command
+        return redirect('task_list')
+
+    return render(request, 'tasks/task_delete.html', {'task': task})
+
+Step 3: The Delete Template
+We are reusing the task_form.html for updating, but we need a new specific page for deleting.
+
+Create tasks/templates/tasks/task_delete.html.
+
+Add this code:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Task</title>
+</head>
+<body>
+    <h1>Delete Task</h1>
+    <p>Are you sure you want to delete "{{ task.title }}"?</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit">Yes, Delete</button>
+        <a href="{% url 'task_list' %}">Cancel</a>
+    </form>
+</body>
+</html>
+
+Step 4: Add Buttons to the List
+Now we go back to our main list and add the "Edit" and "Delete" buttons next to every task.
+
+Open tasks/templates/tasks/task_list.html.
+
+Update the loop to include the links. Notice how we pass task.id into the URL tag.
+
+{% for task in tasks %}
+    <div style="border-bottom: 1px solid #ccc; padding: 10px;">
+        <h3>{{ task.title }}</h3>
+        <p>Status: {{ task.completed|yesno:"Done,Pending" }}</p>
+
+        <a href="{% url 'update_task' task.id %}">Edit</a>
+
+        <a href="{% url 'delete_task' task.id %}" style="color: red; margin-left: 10px;">Delete</a>
+    </div>
+{% empty %}
+    <p>No tasks found.</p>
+{% endfor %}
+
+Step 5: Verify Day 4
+Refresh your homepage.
+
+Test Update: Click "Edit" on a task. Change the title or check the "Completed" box. Save. Does it change on the list?
+
+Test Delete: Click "Delete". You should see the "Are you sure?" page. Click "Yes". It should vanish.
+
+Congratulations! You have built a fully functional CRUD application.
+
+Create (Day 3)
+
+Read (Day 2)
+
+Update (Day 4)
+
+Delete (Day 4)
+
+Tomorrow is the victory lap. We will add Bootstrap to make it look professional (Day 5).
+
+Does everything work so far?
+
+----------------------------------------------------------------------------------------------------
