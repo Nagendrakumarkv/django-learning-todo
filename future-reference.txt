@@ -1,0 +1,84 @@
+Day 1 Goal: Create the project, set up the file structure, and define your database table (Model).
+
+Follow these steps exactly in your terminal (Command Prompt/PowerShell or Terminal).
+
+Step 1: The Setup
+We need a clean room for your project so it doesn't interfere with other Python stuff on your computer.
+
+Create a folder:
+mkdir django_todo
+cd django_todo
+
+Create a Virtual Environment:
+python -m venv venv
+venv\Scripts\activate
+
+(You should see (venv) appear at the start of your command line line. This means you are inside the isolated environment.)
+
+Install Django:
+pip install django
+
+Step 2: Start the Engine
+Now we generate the standard Django file structure.
+
+Start the Project: (Note the . at the end. It prevents Django from creating an extra redundant folder).
+django-admin startproject myproject .
+
+Create the App: Django projects are made of "apps". We will call ours tasks.
+python manage.py startapp tasks
+
+Connect them (CRITICAL STEP): Django doesn't know the tasks app exists yet.
+Open myproject/settings.py in your code editor.
+Scroll down to the INSTALLED_APPS list
+Add 'tasks', to the list.
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    # ... other defaults ...
+    'tasks',  # <--- ADD THIS LINE
+]
+
+Step 3: Define the Data (The Model)
+We need to tell the database what a "Task" looks like.
+
+Open tasks/models.py.
+Delete the code there and paste this:
+
+from django.db import models
+
+class Task(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+CharField: Small text (like a title).
+TextField: Large text (like a description).
+BooleanField: True/False (checkbox).
+auto_now_add: Automatically saves the exact time you created the task.   
+
+Step 4: Build the Database
+Now we translate that Python code into a real Database (SQLite).
+
+Make Migrations (Create the blueprint):
+python manage.py makemigrations
+
+You should see a message saying "Create model Task".
+
+Migrate (Build the house):
+python manage.py migrate
+
+Step 5: Verify it works
+Let's turn the lights on.
+
+Run the server:
+python manage.py runserver
+
+Open your browser and go to http://127.0.0.1:8000/. You should see the little rocket ship that says "The install worked successfully! Congratulations!"
+
+-------------------------------------------------------------------------------------------------------
+
